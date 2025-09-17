@@ -1,0 +1,6 @@
+[toolchain]
+# Pin the toolchain so `cargo fmt` and editor format-on-save use the same rustfmt.
+# Update this when you intentionally bump the workspace toolchain.
+channel = "stable"
+components = ["rustfmt", "clippy"]
+profile = "minimal"

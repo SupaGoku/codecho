@@ -1,0 +1,77 @@
+[package]
+name = "codecho"
+version = "1.0.0"
+edition = "2024"
+authors = ["codecho Contributors"]
+description = "codecho - MCP server that wraps codex-cli for AI agent execution"
+license = "MIT"
+default-run = "codecho"
+
+[dependencies]
+# Async runtime
+tokio = { version = "1.41", features = ["full"] }
+tokio-util = { version = "0.7", features = ["codec"] }
+tokio-stream = { version = "0.1", features = ["net", "sync"] }
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+schemars = "0.8"
+
+# Error handling
+anyhow = "1.0"
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+
+# HTTP/SSE
+axum = { version = "0.7", features = ["http2", "json"] }
+axum-extra = { version = "0.9", features = ["typed-header"] }
+tower = "0.5"
+tower-http = { version = "0.5", features = ["cors"] }
+
+# Utilities
+bytes = "1.8"
+chrono = { version = "0.4", features = ["serde"] }
+dashmap = "6.1"
+dotenv = "0.15"
+futures = "0.3"
+uuid = { version = "1.11", features = ["v4", "serde"] }
+
+# HTTP client for test binary
+reqwest = { version = "0.12", features = ["json", "stream"], optional = true }
+
+# MCP
+rmcp = { version = "0.6.4", features = [
+  "macros",
+  "server",
+  "transport-streamable-http-server",
+  "transport-streamable-http-server-session",
+] }
+
+[features]
+test_client = [
+  "rmcp/client",
+  "rmcp/transport-sse-client-reqwest",
+  "rmcp/reqwest",
+  "rmcp/transport-streamable-http-client-reqwest",
+  "rmcp/transport-child-process",
+  "rmcp/tower",
+  "rmcp/auth",
+]
+
+[[bin]]
+name = "test_client"
+required-features = ["test_client"]
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+strip = true
+panic = "abort"
+overflow-checks = false
+debug-assertions = false
+debug = false
+incremental = false
