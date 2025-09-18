@@ -66,7 +66,10 @@ async fn main() -> Result<()> {
             "deployment_target": "macos-arm64",
             "rust_edition": "2024"
           }
-        }
+        },
+        "model": "gpt-5-codex",
+        "reasoning_effort": "high",
+        "sandbox_mode": "danger-full-access"
       })
       .as_object()
       .cloned(),

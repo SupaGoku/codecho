@@ -9,11 +9,16 @@ use rmcp::schemars;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Default, Clone, Deserialize, schemars::JsonSchema)]
-#[schemars(rename_all = "kebab-case")]
 pub enum ReasoningEffort {
+  #[serde(rename = "low")]
+  #[schemars(rename = "low")]
   Low,
   #[default]
+  #[serde(rename = "medium")]
+  #[schemars(rename = "medium")]
   Medium,
+  #[serde(rename = "high")]
+  #[schemars(rename = "high")]
   High,
 }
 
@@ -42,8 +47,10 @@ impl Display for ReasoningEffort {
 #[derive(Debug, Default, Clone, Deserialize, schemars::JsonSchema)]
 pub enum Model {
   #[default]
+  #[serde(rename = "gpt-5-codex")]
   #[schemars(rename = "gpt-5-codex")]
   Gpt5Codex,
+  #[serde(rename = "gpt-5")]
   #[schemars(rename = "gpt-5")]
   Gpt5,
 }
@@ -69,11 +76,16 @@ impl FromStr for Model {
 }
 
 #[derive(Debug, Default, Clone, Deserialize, schemars::JsonSchema)]
-#[schemars(rename_all = "kebab-case")]
 pub enum SandboxMode {
   #[default]
+  #[serde(rename = "read-only")]
+  #[schemars(rename = "read-only")]
   ReadOnly,
+  #[serde(rename = "workspace-write")]
+  #[schemars(rename = "workspace-write")]
   WorkspaceWrite,
+  #[serde(rename = "danger-full-access")]
+  #[schemars(rename = "danger-full-access")]
   DangerFullAccess,
 }
 
