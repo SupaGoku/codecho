@@ -474,9 +474,3 @@ MIT License - See [LICENSE](LICENSE) file for details
 ## Contributing
 
 Contributions are welcome! Please read our [Contributing Guide](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
-
-## Acknowledgments
-
-- Built on [codex-cli](https://github.com/rexdom/codex) for AI agent execution
-- Implements [Model Context Protocol (MCP)](https://github.com/anthropics/mcp) specification
-- Powered by the Rust ecosystem and Tokio async runtime
