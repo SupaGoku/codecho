@@ -12,8 +12,31 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build-and-release:
-    name: Build and Release
+  create-release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Full history for changelog generation
+
+      - name: Create Release with Changelog
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-') }}
+          generate_release_notes: true # This creates the auto-generated changelog
+          body_path: .github/RELEASE_TEMPLATE.md # Optional: add a template file if it exists
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-and-upload:
+    name: Build and Upload
+    needs: create-release # Depend on release creation
     strategy:
       matrix:
         include:
@@ -110,32 +133,12 @@ jobs:
         with:
           files: |
             ${{ matrix.asset_name }}.*
-          draft: false
-          prerelease: ${{ contains(github.ref_name, '-') }} # Auto-detect pre-release from tag
-          generate_release_notes: true
-          body: |
-            ## Installation
-
-            ### macOS/Linux
-            ```bash
-            # Download the appropriate binary for your platform
-            curl -LO https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/${{ matrix.asset_name }}.tar.gz
-            tar xzf ${{ matrix.asset_name }}.tar.gz
-            chmod +x codecho
-            sudo mv codecho /usr/local/bin/
-            ```
-
-            ### Windows
-            Download `codecho-windows-amd64.exe.zip` and extract to a directory in your PATH.
-
-            ## What's Changed
-            See the auto-generated release notes below for changes in this version.
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   update-release-notes:
     name: Update Release Notes
-    needs: build-and-release
+    needs: build-and-upload
     runs-on: ubuntu-latest
     if: success()
 
@@ -143,15 +146,23 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Update release with consolidated info
+      - name: Get release info
+        id: get_release
+        run: |
+          RELEASE_INFO=$(gh api repos/${{ github.repository }}/releases/tags/${{ github.ref_name }})
+          echo "release_body<<EOF" >> $GITHUB_OUTPUT
+          echo "$RELEASE_INFO" | jq -r '.body' >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update release with installation instructions
         uses: softprops/action-gh-release@v2
         with:
           body: |
-            ## 🎉 Release ${{ github.ref_name }}
+            ## 📦 Installation
 
-            ### 📦 Installation
-
-            #### macOS (Intel)
+            ### macOS (Intel)
             ```bash
             curl -LO https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/codecho-macos-amd64.tar.gz
             tar xzf codecho-macos-amd64.tar.gz
@@ -159,7 +170,7 @@ jobs:
             sudo mv codecho /usr/local/bin/
             ```
 
-            #### macOS (Apple Silicon)
+            ### macOS (Apple Silicon)
             ```bash
             curl -LO https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/codecho-macos-arm64.tar.gz
             tar xzf codecho-macos-arm64.tar.gz
@@ -167,7 +178,7 @@ jobs:
             sudo mv codecho /usr/local/bin/
             ```
 
-            #### Linux (x86_64)
+            ### Linux (x86_64)
             ```bash
             curl -LO https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/codecho-linux-amd64.tar.gz
             tar xzf codecho-linux-amd64.tar.gz
@@ -175,7 +186,7 @@ jobs:
             sudo mv codecho /usr/local/bin/
             ```
 
-            #### Linux (ARM64)
+            ### Linux (ARM64)
             ```bash
             curl -LO https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/codecho-linux-arm64.tar.gz
             tar xzf codecho-linux-arm64.tar.gz
@@ -183,7 +194,7 @@ jobs:
             sudo mv codecho /usr/local/bin/
             ```
 
-            #### Windows
+            ### Windows
             Download `codecho-windows-amd64.exe.zip`, extract, and add to your PATH.
 
             ### 🔧 Verify Installation
@@ -191,8 +202,9 @@ jobs:
             codecho --version
             ```
 
-            ### 📝 Changelog
-            Auto-generated from commits since last release.
+            ---
+
+            ## 📝 What's Changed
+            ${{ steps.get_release.outputs.release_body }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
