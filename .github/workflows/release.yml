@@ -30,7 +30,6 @@ jobs:
           draft: false
           prerelease: ${{ contains(github.ref_name, '-') }}
           generate_release_notes: true # This creates the auto-generated changelog
-          body_path: .github/RELEASE_TEMPLATE.md # Optional: add a template file if it exists
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
