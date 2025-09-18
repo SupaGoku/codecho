@@ -9,6 +9,7 @@ use rmcp::schemars;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Default, Clone, Deserialize, schemars::JsonSchema)]
+#[schemars(rename_all = "kebab-case")]
 pub enum ReasoningEffort {
   Low,
   #[default]
@@ -41,7 +42,9 @@ impl Display for ReasoningEffort {
 #[derive(Debug, Default, Clone, Deserialize, schemars::JsonSchema)]
 pub enum Model {
   #[default]
+  #[schemars(rename = "gpt-5-codex")]
   Gpt5Codex,
+  #[schemars(rename = "gpt-5")]
   Gpt5,
 }
 
@@ -66,6 +69,7 @@ impl FromStr for Model {
 }
 
 #[derive(Debug, Default, Clone, Deserialize, schemars::JsonSchema)]
+#[schemars(rename_all = "kebab-case")]
 pub enum SandboxMode {
   #[default]
   ReadOnly,

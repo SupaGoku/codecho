@@ -1,0 +1,6 @@
+[tasks.test-client]
+command = "cargo"
+args = ["run", "--bin", "test_client", "--features", "test_client"]
+
+[tasks.tc]
+alias = "test-client"
