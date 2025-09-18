@@ -60,8 +60,34 @@ cargo build --release
 
 Download the latest release for your platform from the [Releases](https://github.com/SupaGoku/codecho/releases) page.
 
+#### macOS Security Notice
+
+The macOS binaries are not code-signed because I'm not paying Apple $99/year just to distribute this free open-source tool. When you first run codecho on macOS, you'll see a security warning. Here's how to bypass it:
+
+**Option 1: Remove Quarantine (Recommended)**
 ```bash
-# macOS/Linux - Make it executable
+# Remove the quarantine flag that macOS adds to downloaded files
+xattr -d com.apple.quarantine codecho
+
+# Make it executable
+chmod +x codecho
+```
+
+**Option 2: System Settings**
+1. Try to run `codecho` (it will be blocked)
+2. Open System Settings > Privacy & Security
+3. Look for "codecho was blocked from use because it is not from an identified developer"
+4. Click "Open Anyway"
+
+**Option 3: Right-click Method**
+1. Right-click (or Control-click) the `codecho` file in Finder
+2. Select "Open" from the context menu
+3. Click "Open" in the dialog that appears
+
+#### Linux/Windows Installation
+
+```bash
+# Linux - Make it executable
 chmod +x codecho
 
 # Add to PATH (optional)

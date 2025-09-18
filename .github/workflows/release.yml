@@ -117,6 +117,12 @@ jobs:
       - name: Build binary
         run: cargo build --release --target ${{ matrix.target }} --bin codecho
 
+      - name: Code sign macOS binary
+        if: runner.os == 'macOS'
+        run: |
+          codesign --force --sign - target/${{ matrix.target }}/release/codecho
+          codesign --verify --verbose target/${{ matrix.target }}/release/codecho
+
       - name: Prepare binary
         run: |
           cd target/${{ matrix.target }}/release
@@ -165,6 +171,7 @@ jobs:
             ```bash
             curl -LO https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/codecho-macos-amd64.tar.gz
             tar xzf codecho-macos-amd64.tar.gz
+            xattr -d com.apple.quarantine codecho  # Remove macOS security warning*
             chmod +x codecho
             sudo mv codecho /usr/local/bin/
             ```
@@ -173,9 +180,12 @@ jobs:
             ```bash
             curl -LO https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/codecho-macos-arm64.tar.gz
             tar xzf codecho-macos-arm64.tar.gz
+            xattr -d com.apple.quarantine codecho  # Remove macOS security warning*
             chmod +x codecho
             sudo mv codecho /usr/local/bin/
             ```
+
+            **\* macOS binaries are not code-signed (not paying Apple $99/year for this free tool)**
 
             ### Linux (x86_64)
             ```bash
