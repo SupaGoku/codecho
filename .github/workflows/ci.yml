@@ -3,8 +3,23 @@ name: CI
 on:
   push:
     branches: [main, develop]
+    paths:
+      - '**.rs'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - '.github/workflows/**'
+      - 'rustfmt.toml'
+      - 'rust-toolchain.toml'
+
   pull_request:
     branches: [main]
+    paths:
+      - '**.rs'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - '.github/workflows/**'
+      - 'rustfmt.toml'
+      - 'rust-toolchain.toml'
 
 env:
   CARGO_TERM_COLOR: always
@@ -63,4 +78,3 @@ jobs:
 
       - name: Run security audit
         run: cargo audit
-
