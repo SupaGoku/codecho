@@ -40,15 +40,31 @@ jobs:
         run: |
           rustup show
 
+      - name: Generate deps cache key
+        id: deps-cache-key
+        run: |
+          # Create cache key from Cargo.lock, excluding only our package's version line
+          # This preserves cache across version bumps but invalidates on dependency changes
+          DEPS_HASH=$(awk '
+            /^\[\[package\]\]/ { in_package=1 }
+            in_package && /^name = "codecho"$/ { in_codecho=1 }
+            in_package && /^version = / && in_codecho { next }  # Skip version line in codecho package
+            in_package && /^$/ { in_package=0; in_codecho=0 }  # Reset at package end
+            { print }  # Print all other lines
+          ' Cargo.lock | sha256sum | cut -d' ' -f1)
+          echo "deps-hash=${DEPS_HASH}" >> $GITHUB_OUTPUT
+        shell: bash
+
       - name: Cache dependencies
         uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
-            target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: ${{ runner.os }}-cargo-
+            target/debug/deps
+            target/release/deps
+          key: ${{ runner.os }}-cargo-deps-${{ steps.deps-cache-key.outputs.deps-hash }}
+          restore-keys: ${{ runner.os }}-cargo-deps-
 
       - name: Check formatting
         if: matrix.os != 'windows-latest'

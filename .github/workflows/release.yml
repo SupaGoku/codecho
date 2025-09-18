@@ -66,21 +66,31 @@ jobs:
           sudo apt-get install -y gcc-aarch64-linux-gnu
           echo "CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc" >> $GITHUB_ENV
 
-      - name: Cache Cargo registry
-        uses: actions/cache@v4
-        with:
-          path: ~/.cargo/registry
-          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-registry-
+      - name: Generate deps cache key
+        id: deps-cache-key
+        run: |
+          # Create cache key from Cargo.lock, excluding only our package's version line
+          # This preserves cache across version bumps but invalidates on dependency changes
+          DEPS_HASH=$(awk '
+            /^\[\[package\]\]/ { in_package=1 }
+            in_package && /^name = "codecho"$/ { in_codecho=1 }
+            in_package && /^version = / && in_codecho { next }  # Skip version line in codecho package
+            in_package && /^$/ { in_package=0; in_codecho=0 }  # Reset at package end
+            { print }  # Print all other lines
+          ' Cargo.lock | sha256sum | cut -d' ' -f1)
+          echo "deps-hash=${DEPS_HASH}" >> $GITHUB_OUTPUT
+        shell: bash
 
-      - name: Cache Cargo index
+      - name: Cache dependencies
         uses: actions/cache@v4
         with:
-          path: ~/.cargo/git
-          key: ${{ runner.os }}-cargo-git-${{ hashFiles('**/Cargo.lock') }}
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target/${{ matrix.target }}/release/deps
+          key: ${{ runner.os }}-${{ matrix.target }}-cargo-deps-${{ steps.deps-cache-key.outputs.deps-hash }}
           restore-keys: |
-            ${{ runner.os }}-cargo-git-
+            ${{ runner.os }}-${{ matrix.target }}-cargo-deps-
 
       - name: Build binary
         run: cargo build --release --target ${{ matrix.target }} --bin codecho
