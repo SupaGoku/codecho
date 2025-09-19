@@ -154,9 +154,11 @@ impl CodexClient {
     args.push("--config".to_string());
     args.push(format!("model_reasoning_effort={}", reasoning_effort));
 
-    let working_dir = request.context.as_ref().and_then(|c| c.working_dir.clone()).unwrap_or(".".to_string());
+    let working_dir = request.context.working_dir.clone();
     args.push("--cd".to_string());
     args.push(working_dir.clone());
+
+    args.push("-skip-git-repo-check".to_string());
 
     args
   }
@@ -165,45 +167,42 @@ impl CodexClient {
     use std::fmt::Write;
 
     let mut prompt = String::new();
+    let context = request.context;
 
-    if let Some(context) = &request.context {
-      writeln!(&mut prompt, "# Context").unwrap();
+    writeln!(&mut prompt, "# Context").unwrap();
+    writeln!(&mut prompt).unwrap();
+
+    writeln!(&mut prompt, "Working directory: {}", context.working_dir).unwrap();
+    writeln!(&mut prompt).unwrap();
+
+    if let Some(files) = &context.files {
+      writeln!(&mut prompt, "## Files").unwrap();
       writeln!(&mut prompt).unwrap();
 
-      if let Some(working_dir) = &context.working_dir {
-        writeln!(&mut prompt, "Working directory: {}", working_dir).unwrap();
-        writeln!(&mut prompt).unwrap();
-      }
+      for file in files {
+        write!(&mut prompt, "{}", file.path).unwrap();
 
-      if let Some(files) = &context.files {
-        writeln!(&mut prompt, "## Files").unwrap();
-        writeln!(&mut prompt).unwrap();
-
-        for file in files {
-          write!(&mut prompt, "{}", file.path).unwrap();
-
-          if let Some(content) = &file.content {
-            writeln!(&mut prompt, ":").unwrap();
-            writeln!(&mut prompt, "{}", content).unwrap();
-            writeln!(&mut prompt).unwrap();
-          } else {
-            writeln!(&mut prompt).unwrap();
-          }
+        if let Some(content) = &file.content {
+          writeln!(&mut prompt, ":").unwrap();
+          writeln!(&mut prompt, "{}", content).unwrap();
+          writeln!(&mut prompt).unwrap();
+        } else {
+          writeln!(&mut prompt).unwrap();
         }
-
-        writeln!(&mut prompt).unwrap();
       }
 
-      if let Some(variables) = &context.variables {
-        writeln!(&mut prompt, "## Variables").unwrap();
-        writeln!(&mut prompt).unwrap();
+      writeln!(&mut prompt).unwrap();
+    }
 
-        for (key, value) in variables {
-          writeln!(&mut prompt, "{}: {}", key, value).unwrap();
-        }
+    if let Some(variables) = &context.variables {
+      writeln!(&mut prompt, "## Variables").unwrap();
+      writeln!(&mut prompt).unwrap();
 
-        writeln!(&mut prompt).unwrap();
+      for (key, value) in variables {
+        writeln!(&mut prompt, "{}: {}", key, value).unwrap();
       }
+
+      writeln!(&mut prompt).unwrap();
     }
 
     writeln!(&mut prompt, "## User Prompt").unwrap();

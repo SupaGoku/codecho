@@ -147,7 +147,7 @@ pub struct CodexPromptRequest {
   #[schemars(description = "The prompt to execute")]
   pub prompt: String,
   #[schemars(description = "The context/working directory to execute the prompt in")]
-  pub context: Option<Context>,
+  pub context: Context,
   #[schemars(description = "The timeout for the prompt")]
   pub timeout: Option<u64>,
   #[schemars(description = "The model to use")]
@@ -158,14 +158,14 @@ pub struct CodexPromptRequest {
   pub sandbox_mode: Option<SandboxMode>,
 }
 
-#[derive(Debug, Clone, Deserialize, schemars::JsonSchema)]
+#[derive(Debug, Default, Clone, Deserialize, schemars::JsonSchema)]
 pub struct Context {
   #[schemars(description = "The files to include in the context")]
   pub files: Option<Vec<ContextFile>>,
   #[schemars(description = "The variables to include in the context")]
   pub variables: Option<HashMap<String, String>>,
-  #[schemars(description = "The working directory to include in the context")]
-  pub working_dir: Option<String>,
+  #[schemars(description = "The working/base directory (required to execute the prompt in this context)")]
+  pub working_dir: String,
 }
 
 #[derive(Debug, Clone, Deserialize, schemars::JsonSchema)]
